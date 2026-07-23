@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AuraLift — Importar Rutina</title>
+  <meta name="description" content="Abre AuraLift para importar esta rutina." />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0A0E13;
+      color: #EAEAEA;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: linear-gradient(145deg, #13181F, #0E1218);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 28px;
+      padding: 36px 28px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 0 80px rgba(139, 92, 246, 0.15);
+    }
+
+    .icon-wrap {
+      width: 72px;
+      height: 72px;
+      background: rgba(139, 92, 246, 0.15);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 36px;
+    }
+
+    .label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      color: #8B5CF6;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .routine-name {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+      margin-bottom: 20px;
+      color: #FFFFFF;
+    }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    .chip {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #AAAAAA;
+    }
+
+    .status {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 24px;
+      min-height: 20px;
+      transition: color 0.3s;
+    }
+
+    .status.ok   { color: #4ADE80; }
+    .status.warn { color: #FBBF24; }
+
+    /* Spinner */
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(139,92,246,0.2);
+      border-top-color: #8B5CF6;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      margin: 0 auto 24px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn:active { opacity: 0.85; transform: scale(0.98); }
+
+    .btn-outline {
+      margin-top: 10px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #888;
+      font-size: 14px;
+    }
+
+    .footer {
+      margin-top: 32px;
+      font-size: 12px;
+      color: #444;
+    }
+    .footer span { color: #8B5CF6; font-weight: 600; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon-wrap">💪</div>
+    <p class="label">Rutina compartida</p>
+    <h1 class="routine-name" id="routineName">Cargando…</h1>
+    <div class="chips" id="chips"></div>
+
+    <div class="spinner" id="spinner"></div>
+    <p class="status" id="status">Abriendo AuraLift…</p>
+
+    <a class="btn hidden" id="btnOpen" href="#">Abrir en AuraLift</a>
+    <a class="btn btn-outline hidden" id="btnPlay"
+       href="https://play.google.com/store/apps/details?id=com.auralift.app"
+       target="_blank">
+      Descargar AuraLift en Google Play
+    </a>
+  </div>
+
+  <p class="footer">Creado con <span>AuraLift</span></p>
+
+  <script>
+    const params  = new URLSearchParams(window.location.search);
+    const nombre  = params.get('nombre') || 'Rutina';
+    const datos   = params.get('datos')  || '';
+    const split   = params.get('split')  || '';
+    const dias    = params.get('dias')   || '';
+    const ejercs  = params.get('ejercs') || '';
+
+    const PLAY    = 'https://play.google.com/store/apps/details?id=com.auralift.app';
+    const deepLink = `auralift://importar?nombre=${encodeURIComponent(nombre)}&datos=${encodeURIComponent(datos)}`;
+
+    // Poblar UI
+    document.getElementById('routineName').textContent = decodeURIComponent(nombre);
+
+    const chips = document.getElementById('chips');
+    if (split)  chips.innerHTML += `<span class="chip">📋 ${decodeURIComponent(split)}</span>`;
+    if (dias)   chips.innerHTML += `<span class="chip">📅 ${dias} días</span>`;
+    if (ejercs) chips.innerHTML += `<span class="chip">🏋️ ${ejercs} ejercicios</span>`;
+
+    if (!datos) {
+      document.getElementById('status').textContent = 'Link inválido o expirado.';
+      document.getElementById('spinner').classList.add('hidden');
+      return;
+    }
+
+    // Intentar abrir la app
+    let appOpened = false;
+
+    function tryOpenApp() {
+      // Navegar al deep link — si la app está instalada, Android la abre
+      window.location.href = deepLink;
+
+      // Detectar si la app se abrió: la página se ocultará / perderá foco
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) appOpened = true;
+      });
+      window.addEventListener('blur', () => { appOpened = true; });
+
+      // Después de 1.8s si sigue visible → ofrecer Play Store
+      setTimeout(() => {
+        if (!appOpened && !document.hidden) {
+          showFallback();
+        }
+      }, 1800);
+    }
+
+    function showFallback() {
+      document.getElementById('spinner').classList.add('hidden');
+      document.getElementById('status').textContent =
+        'No se detectó AuraLift instalado.';
+      document.getElementById('status').classList.add('warn');
+      document.getElementById('btnOpen').classList.remove('hidden');
+      document.getElementById('btnPlay').classList.remove('hidden');
+    }
+
+    // Iniciar en cuanto carga la página
+    window.addEventListener('load', tryOpenApp);
+
+    // Botón manual "Abrir en AuraLift"
+    document.getElementById('btnOpen').href = deepLink;
+    document.getElementById('btnOpen').addEventListener('click', () => {
+      document.getElementById('status').textContent = 'Intentando abrir…';
+    });
+  </script>
+</body>
+</html>
